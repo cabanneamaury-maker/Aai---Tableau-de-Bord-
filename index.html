@@ -62,14 +62,14 @@
   .radialNode{
     position:absolute; transform:translate(-50%,-50%);
     width:27%; aspect-ratio:1/1; border-radius:50%;
-    border:1.5px solid; cursor:pointer;
+    border:1.5px solid; cursor:pointer; color:#fff;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
     padding:8px; text-align:center; transition:transform .15s ease, box-shadow .15s ease;
   }
-  .radialNode:hover{ transform:translate(-50%,-50%) scale(1.06); box-shadow:0 8px 20px rgba(20,30,60,.16); z-index:2; }
+  .radialNode:hover{ transform:translate(-50%,-50%) scale(1.06); box-shadow:0 8px 20px rgba(20,30,60,.28); z-index:2; }
   .radialNode .radialNodeIcon{ font-size:clamp(16px, 4.5vw, 24px); }
-  .radialNode .radialNodeName{ font-size:clamp(8.5px, 2vw, 11px); font-weight:800; line-height:1.15; }
-  .radialNode .radialNodeCount{ font-size:clamp(7px, 1.6vw, 9px); opacity:.75; font-weight:600; }
+  .radialNode .radialNodeName{ font-size:clamp(8.5px, 2vw, 11px); font-weight:800; line-height:1.15; color:#fff; }
+  .radialNode .radialNodeCount{ font-size:clamp(7px, 1.6vw, 9px); opacity:.85; font-weight:600; color:#fff; }
 
   .radialHub{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
@@ -301,7 +301,7 @@
       name: "Suivi d'Affaires",
       folder: "gestionaffaire",
       tag: "Affaires",
-      color: "#7C4DBE",
+      color: "#0B2E54",
       icon: "📊",
       externalUrl: "https://hubgroupesave-my.sharepoint.com/:x:/r/personal/a_cabanne_aai-france_fr/Documents/TABLEAU%20DE%20BORD%20-%20SAV%20BORDEAUX/Suivi_d_Affaires.xlsm?d=w88f8f3e8d610476aa00cd913e0501d1f&csf=1&web=1&e=U9eEjI",
       desc: "Tableau de bord de suivi des affaires en cours : statut, avancement, dates clés, chiffrage et facturation.",
@@ -369,7 +369,7 @@
 
   // Dossiers thématiques regroupant les outils, dans l'ordre d'affichage souhaité.
   const FOLDERS = [
-    { id: "gestionaffaire", name: "Gestion d'affaire",  icon: "📊", color: "#7C4DBE" },
+    { id: "gestionaffaire", name: "Gestion d'affaire",  icon: "📊", color: "#0B2E54" },
     { id: "hse",           name: "HSE / Sécurité",       icon: "⛑️", color: "#1D9E75" },
     { id: "soustraitance", name: "Sous-traitance",       icon: "🤝", color: "#48ADE3" },
     { id: "logistique",    name: "Logistique",           icon: "🚧", color: "#48ADE3" },
@@ -399,17 +399,23 @@
     inner.appendChild(svg);
 
     const R = 38; // rayon en % du cercle des dossiers autour du centre
+
+    // Anneau reliant les dossiers périphériques entre eux (pas de lien vers le
+    // centre). C'est un simple cercle passant par le centre de chaque pastille ;
+    // comme les pastilles ont un fond plein, elles masquent le trait qui passe
+    // derrière et il ne reste visible que les arcs entre pastilles voisines.
+    const ring = document.createElementNS(svgNS, 'circle');
+    ring.setAttribute('cx', '50'); ring.setAttribute('cy', '50'); ring.setAttribute('r', String(R));
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke', '#0B2E54');
+    ring.setAttribute('stroke-opacity', '0.25');
+    ring.setAttribute('stroke-width', '0.6');
+    svg.appendChild(ring);
+
     others.forEach((folder, i) => {
       const angle = (2 * Math.PI * i / others.length) - Math.PI / 2;
       const x = 50 + R * Math.cos(angle);
       const y = 50 + R * Math.sin(angle);
-
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', '50'); line.setAttribute('y1', '50');
-      line.setAttribute('x2', x.toFixed(2)); line.setAttribute('y2', y.toFixed(2));
-      line.setAttribute('stroke', folder.color + '55');
-      line.setAttribute('stroke-width', '0.6');
-      svg.appendChild(line);
 
       const count = TOOLS.filter(t => t.folder === folder.id).length;
       const tile = document.createElement('button');
@@ -417,12 +423,12 @@
       tile.className = 'radialNode';
       tile.style.left = x + '%';
       tile.style.top = y + '%';
-      tile.style.background = folder.color + '14';
-      tile.style.borderColor = folder.color + '40';
+      tile.style.background = folder.color;
+      tile.style.borderColor = folder.color;
       tile.innerHTML = `
         <span class="radialNodeIcon">${folder.icon}</span>
-        <span class="radialNodeName" style="color:${folder.color};">${folder.name}</span>
-        <span class="radialNodeCount" style="color:${folder.color};">${count} outil${count>1?'s':''}</span>
+        <span class="radialNodeName">${folder.name}</span>
+        <span class="radialNodeCount">${count} outil${count>1?'s':''}</span>
       `;
       tile.addEventListener('click', () => { currentFolder = folder.id; render(''); document.getElementById('search').value = ''; });
       inner.appendChild(tile);
